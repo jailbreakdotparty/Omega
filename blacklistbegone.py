@@ -32,7 +32,7 @@ def get_device_info():
     info_text = f"{lockdown.get_value(key="DeviceName")} ({(os_names[device_class] + " " + product_version) if device_class in os_names else ""})"
     return info_text
 
-click.secho("BlacklistBeGone v2.0 - by jailbreak.party\nMade possible by James Gill (@JJTech0130), Duy Tran (@khanhduytran0) and Mineek (@mineekdev)", fg="blue")
+click.secho("BlacklistBeGone v2.0 - by jailbreak.party\nMade possible by JJTech (@JJTech0130), Duy Tran (@khanhduytran0) and Mineek (@mineekdev)", fg="blue")
 click.secho(f"Connected to {get_device_info()}", fg="green")
 
 click.secho("This will clear the app revokes and certificate validity databases.", fg="yellow")
@@ -76,7 +76,7 @@ while True:
             ])
 
             click.secho("Restoring backup...", fg="yellow")
-            #perform_restore(back, reboot=True)
+            perform_restore(back, reboot=True)
 
             click.secho("Finished! Your device should reboot shortly. If it does not, you may reboot it manually.")
         click.secho("Exiting script...", fg="red")
