@@ -7,14 +7,11 @@ from pymobiledevice3.services.diagnostics import DiagnosticsService
 from pymobiledevice3.exceptions import PyMobileDevice3Exception
 
 from . import backup
-from .backup import _FileMode as FileMode
 
 def perform_restore(backup: backup.Backup, reboot: bool = False):
     try:
         with TemporaryDirectory() as backup_dir:
             backup.write_to_directory(Path(backup_dir))
-            # print(f"Backup dump: {backup}")
-            # input("Press Enter to continue, or Ctrl+C to quit...")
                 
             lockdown = create_using_usbmux()
             with Mobilebackup2Service(lockdown) as mb:

@@ -1,10 +1,12 @@
 import platform
 import sys
+import click
+import plistlib
 
+from pathlib import Path
 from sparserestore import backup, perform_restore
 from pymobiledevice3.exceptions import NoDeviceConnectedError
 from pymobiledevice3.lockdown import create_using_usbmux
-import plistlib
 
 def exit(code=0):
     if platform.system() == "Windows" and getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
@@ -15,73 +17,67 @@ def exit(code=0):
 try:
     lockdown = create_using_usbmux()
 except NoDeviceConnectedError:
-        print("No device connected!")
-        print("Please connect your device and try again.")
+        click.secho("No device detected! Please connect your device via USB and try again.", fg="red")
         exit(1)
 
-def get_nice_ios_version_string():
+def get_device_info():
     os_names = {
         "iPhone": "iOS",
         "iPad": "iPadOS",
         "iPod": "iOS",
-        "AppleTV": "tvOS",
-        "Watch": "watchOS",
-        "AudioAccessory": "HomePod Software Version",
         "RealityDevice": "visionOS",
     }
     device_class = lockdown.get_value(key="DeviceClass")
     product_version = lockdown.get_value(key="ProductVersion")
-    os_name = (os_names[device_class] + " " + product_version) if device_class in os_names else ""
-    return os_name
-    
-def menu():
-    print(f"""
-               BlacklistBeGone v1.1
-                by jailbreak.party
-          
-             Special thanks to Mineek
+    info_text = f"{lockdown.get_value(key="DeviceName")} ({(os_names[device_class] + " " + product_version) if device_class in os_names else ""})"
+    return info_text
 
-      Connected to {lockdown.get_value(key="DeviceName")} ({get_nice_ios_version_string()})
-        
-         === Please select an option. ===
-    """)
-    print("""
-      [1] : Remove Blacklist
-            
-      [0] : Exit
-    """)
-    option = None
-    try:
-        user_input = input("Select an option: ")
-        if user_input.strip():
-            option = int(float(user_input))
-        else:
-            input("Please select an option. Press Enter to continue.")
-            menu()
-    except ValueError:
-        input("Please enter a valid number. Press Enter to continue.")
-        menu()
+click.secho("BlacklistBeGone v2.0 - by jailbreak.party\nMade possible by James Gill (@JJTech0130), Duy Tran (@khanhduytran0) and Mineek (@mineekdev)", fg="blue")
+click.secho(f"Connected to {get_device_info()}", fg="green")
 
-    if option is not None:
-        if option == 1:
+click.secho("This will clear the app revokes and certificate validity databases.", fg="yellow")
+click.secho("NOTE: This tool is experimental and has a chance of damaging your device, or causing data loss.\nWe take zero responsibility in the event this happens. Use this tool at your own risk.", fg="red")
+
+while True:
+        value = input("To continue, type \"CONTINUE\" and hit Enter. Otherwise, the script will exit.\n").strip()
+        if value == "CONTINUE":
+            click.secho("Creating backup...", fg="yellow")
+
             plist_contents = plistlib.dumps({})
-            back = backup.Backup(files=[
-                backup.Directory("", "SysContainerDomain-../../../../../../../../var/db/MobileIdentityData/"),
-                backup.ConcreteFile("", "SysContainerDomain-../../../../../../../../var/db/MobileIdentityData/Rejections.plist", contents=plist_contents),
-                backup.ConcreteFile("", "SysContainerDomain-../../../../../../../../var/db/MobileIdentityData/AuthListBannedUpps.plist", contents=plist_contents),
-                backup.ConcreteFile("", "SysContainerDomain-../../../../../../../../var/db/MobileIdentityData/AuthListBannedCdHashes.plist", contents=plist_contents),
-                backup.Directory("", "SysContainerDomain-../../../../../../../../var/protected/trustd/private/"),
-                backup.ConcreteFile("", "SysContainerDomain-../../../../../../../../var/protected/trustd/private/ocspcache.sqlite3", contents=b''),
-                backup.ConcreteFile("", "SysContainerDomain-../../../../../../../../var/protected/trustd/private/ocspcache.sqlite3-shm", contents=b''),
-                backup.ConcreteFile("", "SysContainerDomain-../../../../../../../../var/protected/trustd/private/ocspcache.sqlite3-wal", contents=b''),
-                backup.ConcreteFile("", "SysContainerDomain-../../../../../../../../crash_on_purpose", contents=b'')
-            ])
-            perform_restore(back, reboot=True)
-        elif option == 0:
-            print("Thanks for using BlacklistBeGone!")
-            exit()
-        else:
-            input("Please select a valid option. Press Enter to continue.")
-            menu()
 
-menu()
+            cloudconfig_path = Path.joinpath(Path.cwd(), "files/CloudConfigurationDetails.plist")
+            cloudconfig_contents = open(cloudconfig_path, "rb").read()
+
+            purplebuddy_path = Path.joinpath(Path.cwd(), "files/com.apple.purplebuddy.plist")
+            purplebuddy_contents = open(purplebuddy_path, "rb").read()
+
+            back = backup.Backup(files=[
+                # using Directory now for persistence (thanks Duy!!).
+                # idk why the backup system lets us do this, but it's very nice cause it messes up writes to these files entirely
+                # now we pray misagent/installd/trustd don't get updated...
+                backup.Directory("", "DatabaseDomain"),
+                backup.Directory("MobileIdentityData", "DatabaseDomain"),
+                backup.Directory("MobileIdentityData/Rejections.plist", "DatabaseDomain"),
+                backup.Directory("MobileIdentityData/AuthListBannedUpps.plist", "DatabaseDomain"),
+                backup.Directory("MobileIdentityData/AuthListBannedCdHashes.plist", "DatabaseDomain"),
+                backup.Directory("", "ProtectedDomain"),
+                backup.Directory("trustd", "ProtectedDomain"),
+                backup.Directory("trustd/valid.sqlite3", "ProtectedDomain"),
+                backup.Directory("trustd/valid.sqlite3-shm", "ProtectedDomain"),
+                backup.Directory("trustd/valid.sqlite3-wal", "ProtectedDomain"),
+                # skip setup
+                backup.Directory("", "SysSharedContainerDomain-systemgroup.com.apple.configurationprofiles"),
+                backup.Directory("Library", "SysSharedContainerDomain-systemgroup.com.apple.configurationprofiles"),
+                backup.Directory("Library/ConfigurationProfiles", "SysSharedContainerDomain-systemgroup.com.apple.configurationprofiles"),
+                backup.ConcreteFile("Library/ConfigurationProfiles/CloudConfigurationDetails.plist", "SysSharedContainerDomain-systemgroup.com.apple.configurationprofiles", contents=cloudconfig_contents),
+                backup.Directory("", "ManagedPreferencesDomain"),
+                backup.Directory("mobile", "ManagedPreferencesDomain"),
+                backup.ConcreteFile("mobile/com.apple.purplebuddy.plist", "ManagedPreferencesDomain", contents=purplebuddy_contents),
+            ])
+
+            click.secho("Restoring backup...", fg="yellow")
+            #perform_restore(back, reboot=True)
+
+            click.secho("Finished! Your device should reboot shortly. If it does not, you may reboot it manually.")
+        click.secho("Exiting script...", fg="red")
+        exit()
