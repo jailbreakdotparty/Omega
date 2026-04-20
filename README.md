@@ -8,7 +8,7 @@ Clears app revoke and certificate validity databases on iOS, for sideloaders.
 >Make a backup before using this tool **JUST IN CASE.** We are not responsible for any damages that this may cause to your device, so use at your own risk.
 
 ## Usage
-**Requrements**
+**Requirements**
 - A computer with Python 3.9+, [pymobiledevice3](https://github.com/doronz88/pymobiledevice3), and `click` installed.
 - On Windows, [Apple Devices](https://apps.microsoft.com/detail/9np83lwlpz9k) or [iTunes](https://support.apple.com/en-us/106372) installed.
 - On Linux, [usbmuxd](https://github.com/libimobiledevice/usbmuxd) and [libimobiledevice](https://github.com/libimobiledevice/libimobiledevice).
