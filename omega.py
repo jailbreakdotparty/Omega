@@ -78,7 +78,7 @@ async def main():
                 ])
 
                 click.secho("Restoring backup...", fg="yellow")
-                await perform_restore(back, client=lockdown, reboot=False)
+                await perform_restore(back, client=lockdown, reboot=True)
 
                 click.secho("Finished! Your device should reboot shortly. If it does not, you may reboot it manually.")
             click.secho("Exiting script...", fg="red")
