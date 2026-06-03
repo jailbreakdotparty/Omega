@@ -1,4 +1,6 @@
-# BlacklistBeGone
+# Omega
+***(formerly BlacklistBeGone)***
+
 Clears app revoke and certificate validity databases on iOS, for sideloaders.
 <p align="left">
   <strong><a href="https://jailbreak.party/discord">Join our Discord!</a></strong>
@@ -17,7 +19,7 @@ Clears app revoke and certificate validity databases on iOS, for sideloaders.
 **Steps**
 1. Disable Find My on your device. This is required to restore the partial backup, you can re-enable it after you're done.
 2. Connect your device to your computer via USB.
-3. Run `blacklistbegone.py` with your Python install.
+3. Run `omega.py` with your Python install.
 4. Profit
 
 ## Info
