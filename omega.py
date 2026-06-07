@@ -15,27 +15,29 @@ def exit(code=0):
 
     sys.exit(code)
 
-async def get_device_info(client):
+def get_device_info(client):
     os_names = {
         "iPhone": "iOS",
         "iPad": "iPadOS",
         "iPod": "iOS",
         "RealityDevice": "visionOS",
     }
-    device_class = await client.get_value(key="DeviceClass")
-    product_version = await client.get_value(key="ProductVersion")
-    info_text = f"{await client.get_value(key="DeviceName")} ({(os_names[device_class] + " " + product_version) if device_class in os_names else ""})"
+    device_class = client.get_value(key="DeviceClass")
+    product_version = client.get_value(key="ProductVersion")
+    device_name = client.get_value(key='DeviceName')
+    os_info = (os_names[device_class] + ' ' + product_version) if device_class in os_names else ''
+    info_text = f"{device_name} ({os_info})"
     return info_text
 
 async def main():
     try:
-        lockdown = await create_using_usbmux()
+        lockdown = create_using_usbmux()
     except NoDeviceConnectedError:
             click.secho("No device detected! Please connect your device via USB and try again.", fg="red")
             exit(1)
 
     click.secho("Omega v1.0 - by jailbreak.party\nMade possible by JJTech (@JJTech0130), Duy Tran (@khanhduytran0) and Mineek (@mineekdev)", fg="blue")
-    click.secho(f"Connected to {await get_device_info(lockdown)}", fg="green")
+    click.secho(f"Connected to {get_device_info(lockdown)}", fg="green")
 
     click.secho("This will clear the app revokes and certificate validity databases.", fg="yellow")
     click.secho("NOTE: This tool is experimental and has a chance of damaging your device, or causing data loss.\nWe take zero responsibility in the event this happens. Use this tool at your own risk.", fg="red")
