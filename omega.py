@@ -1,7 +1,6 @@
 import platform
 import sys
 import click
-import plistlib
 import asyncio
 
 from pathlib import Path
@@ -34,8 +33,16 @@ async def main():
             click.secho("No device detected! Please connect your device via USB and try again.", fg="red")
             exit(1)
 
-    click.secho("Omega v1.0 - by jailbreak.party\nMade possible by JJTech (@JJTech0130), Duy Tran (@khanhduytran0) and Mineek (@mineekdev)", fg="blue")
+    click.secho("Omega v1.0.1 - by jailbreak.party\nMade possible by JJTech (@JJTech0130), Duy Tran (@khanhduytran0) and Mineek (@mineekdev)", fg="blue")
     click.secho(f"Connected to {await get_device_info(lockdown)}", fg="green")
+
+    product_version = await lockdown.get_value(key="ProductVersion")
+    parsed_version = float(str(product_version))
+    if parsed_version >= 27:
+        click.secho("Omega does not support iOS/iPadOS 27 or higher!", fg="red")
+        click.secho("iOS & iPadOS 27 introduced significant changes to the backup system, which break the restore techniques tools like Omega use to ensure your data is not damaged.\nFor the safety of this tool's users, we have disabled iOS 27 support.\nIf you're an ordinary user: please wait patiently for a fix to get added.\nIf you're not an ordinary user: you should have no problem getting rid of this message :)")
+        click.secho("Exiting script...", fg="red")
+        exit()
 
     click.secho("This will clear the app revokes and certificate validity databases.", fg="yellow")
     click.secho("NOTE: This tool is experimental and has a chance of damaging your device, or causing data loss.\nWe take zero responsibility in the event this happens. Use this tool at your own risk.", fg="red")
@@ -44,8 +51,6 @@ async def main():
             value = input("To continue, type \"CONTINUE\" and hit Enter. Otherwise, the script will exit.\n").strip()
             if value == "CONTINUE":
                 click.secho("Creating backup...", fg="yellow")
-
-                plist_contents = plistlib.dumps({})
 
                 cloudconfig_path = Path.joinpath(Path.cwd(), "files/CloudConfigurationDetails.plist")
                 cloudconfig_contents = open(cloudconfig_path, "rb").read()
