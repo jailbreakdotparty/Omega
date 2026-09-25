@@ -37,7 +37,7 @@ async def main():
     click.secho(f"Connected to {await get_device_info(lockdown)}", fg="green")
 
     product_version = await lockdown.get_value(key="ProductVersion")
-    parsed_version = float(str(product_version))
+    parsed_version = float(".".join(str(product_version).split(".")[:2]))
     if parsed_version >= 27:
         click.secho("Omega does not support iOS/iPadOS 27 or higher!", fg="red")
         click.secho("iOS & iPadOS 27 introduced significant changes to the backup system, which break the restore techniques tools like Omega use to ensure your data is not damaged.\nFor the safety of this tool's users, we have disabled iOS 27 support.\nIf you're an ordinary user: please wait patiently for a fix to get added.\nIf you're not an ordinary user: you should have no problem getting rid of this message :)")
